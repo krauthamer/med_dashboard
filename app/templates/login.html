@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+</head>
+<body>
+{% extends "base.html" %}
+{% block content %}
+<form action = "http://localhost:5000/login" method="POST">
+<p>Username: <input type = "text" name = "username"> </p>
+<p>Password: <input type = "text" name = "password"></p>
+<p><input type = "submit" name = "submit" value = "Login">
+{% endblock %}
+</body>
+</html>

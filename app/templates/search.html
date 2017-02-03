@@ -1,194 +1,182 @@
-{% extends 'base2.html' %}
+{% extends 'base.html' %}
 {% block content %}
 
-  	<div id = "bodydiv" class="container"><br>
-  			<form action = "/process" method="POST" id = "myForm">
+<div id = "bodydiv" class="container"><br>
+  <div>
+    <br><br>
+    <p>What tables do you want to search?</p>
+		<select id = "tables" name = "tables[]" multiple="multiple" class="selectpicker" data-width="fit"  >
+			{% for name in tables %}
+				{% if name == 'procedures' or name == 'medications' or name =='immunizations' or name == 'allergies' or name == 'problems' %}
+					<option value = "{{name}}">{{name}}</option>
+				{% endif %} {% endfor %}
+		</select>
+   <br><br>
+   <p>What columns do you want to search?</p>
+		<select id = "columns" name = "columns[]" multiple="multiple" class="selectpicker" data-width=42%>
+      <div id = "columnSelector" >
+      {% for table, cols in columns.iteritems() %}
+        {% if table == 'procedures' or table == 'medications' or table =='immunizations' or table == 'allergies' or table == 'problems' %} 
+          <optgroup class = "{{table}}" label = "{{table}}" style = "display:none;">
+          {% for col in cols %}
+            <option value = "{{col[0]}}">{{col[1]}}</option>
+          {% endfor %}
+          </optgroup>
+        {% endif %} {% endfor %}
+        </div>
+		</select>
+    <br><br>
+    <div class = "row">
+    <!--
+      <div class = "col-xs-3" style = "float: left; min-width: 200px">
+        <p>Table data options: </p>
+        <div style = "border:1px solid #cccccc; border-radius: 4px; padding: 7px; color: #555555; font-size: 12px; ">
+          <input type = "checkbox" id = "groupByUserID"> Combine data into 1 row per user id? </input></p>
+          <input type = "checkbox" id = "searchDiabetes"> Search for diabetes patients? </input></p>
+          <input type = "checkbox" id = "searchSmoking"> Search for patients who likely smoke? </input></p>
+        </div>
+      </div>
+      -->
+      <div class = "col-xs-2" style = "float: left; padding-right: 0px;  min-width: 100px; ">
+        <p>Limit results?</p>
+        <input type = "number" class = "form-control" id = "limit" value="10000"/></p>
+      </div>
+    </div>
+    <br><br>
+	  <div class = "row">
+      <button id = "getData" type="button" class="btnSubmit" onclick = "submitquery()" > Send </button>
+    </div>
+	</div><br>
 
-          <br><br>
-          <p>What tables do you want to search?</p>
-  				<select id = "tables" name = "tables[]" multiple="multiple" class="selectpicker" data-width="fit">
-  					{% for name in tables %}
-  						{% if name == 'procedures' or name == 'medications' or name =='immunizations' or name == 'allergies' or name == 'problems' %}
-  							<option value = "{{name}}">{{name}}</option>
-  						{% endif %} {% endfor %}
-  				</select>
-			   <br><br>
-         <p>What columns do you want to search?</p>
-  				<select id = "columns" name = "columns[]" multiple="multiple" class="selectpicker" data-width=50% >
-            {% for table, cols in columns.iteritems() %}
-              {% if table == 'procedures' or table == 'medications' or table =='immunizations' or table == 'allergies' or table == 'problems' %} 
-                <optgroup class = "{{table}}" label = "{{table}}">
-                {% for col in cols %}
-                  <option value = "{{col}}">{{col}}</option>
-                {% endfor %}
-                </optgroup>
-              {% endif %} {% endfor %}
-  				</select>
-          <br><br>
-          <p>Limit results?</p>
-          <input type = "number" class = "form-control col-xs-3" id = "limit" value="100" /><br><br><br>
-          <input type = "checkbox" id = "groupByUserID"> Combine data into one row per user id? </input></p><br>
-          <input type = "checkbox" id = "searchDiabetes"> Search for diabetes patients? </input></p><br>
-          <input type = "checkbox" id = "searchSmoking"> Search for patients who likely smoke? </input></p><br>
-  			  <button id = "getData" type="button" class="btnSubmit" onclick = "submitquery()" > Send </button>
-
-  		</form><br><br>
-
-
-  <table id = "dataTable" class = "table-striped" data-search="true" data-show-columns="true" data-pagination="true" data-height=75%>
-    <thead id = "dataTableHead">        
-      <tr id = "firstRow"></tr>
-    </thead>
-  </table>
-
+  <div id= bootstrapTable>
+    <table id = "dataTable" class = "table-striped" data-search="true" data-show-columns="true" data-pagination="true" data-height=75%>
+      <thead id = "dataTableHead" style = "background-color: #333333; color: white; ">        
+        <tr id = "firstRow" ></tr>
+      </thead>
+    </table>
+  </div>
 </div>
 
 <script type="text/javascript">
-  
+
   $( document ).ready(function() {
     {% for name in tables %}
       $('.{{name}}').hide(); 
-      {% endfor %}
-   /* var cols = localStorage['selectedCols'];
-    var data = localStorage['queryResults'];
+    {% endfor %}
+    var cols = localStorage['selectedCols'].split(',');
+    data = JSON.parse(localStorage['queryResults']);
     if(cols && data) {
-      for (col in cols) {
-        addColumnName(col);
-      }
-      $('#dataTable').bootstrapTable({
-        data: data            
-      });
-    } */
+      populateTableFromLocalStorage();
+    } 
+
   }); 
 
-  $( "#tables" ).change(function() {
-      //var str = "";
-      {% for name in tables %}
-        $('.{{name}}').hide(); 
-      {% endfor %}
-      $( "#tables option:selected" ).each(function() {
-        var str = $( this ).text();
-        $('.'+str).show(); 
-      });
-    })
-    .trigger( "change" );
-
-      var selectedCols = [];
-      var counter = 0;
-      var queryString = "";
-      var selectGroupConcat = [];
-      var selectString = "";
-      var fromString = ""
-      var counterTab = -1;
-      var counterCol = 0;
-      var table1 = "";
-      var firstCol = "";
-      var firstSubCol = ""; 
-      var groupBy = "";
-      var concatStart = "SELECT ";
-      var concatEnd = ""; 
-      var strCol = "";
-      var strTab = "";
-
+  var query; 
   function submitquery() {
-      //var selectedTabs = []; 
-      setUpTable(); 
-      reInitializeVars(); 
-      if($('#groupByUserID').is(":checked")) {
-        buildConcatQuery(); 
-        //console.log(concatStart);
-      } else {          
-        buildQuery()
+    setUpTable(); 
+    query = initializeVars(); 
+    buildConcatQuery(); 
+    /*
+    if($('#groupByUserID').is(":checked")) {
+      localStorage.setItem('isConcat', 1);
+      buildConcatQuery(); 
+    } else {          
+      buildQuery()
+      localStorage.setItem('isConcat', 0);
+    }
+    */
+    clearSelected(); 
+
+    $.ajax({
+      type: "POST",
+      contentType: 'application/json',
+      url: "/retrieveQueryResults",
+      dataType: "json",
+      data: JSON.stringify(query.queryString),
+      success:function(response){
+        localStorage.setItem('queryResults', JSON.stringify(response));
+        localStorage.setItem('selectedCols', query.selectedCols);
+        var bootstrapTab = $( '#dataTable' ).bootstrapTable({
+          data: response            
+        });
+      }, 
+      error:function(){
+        console.log("well shit"); 
+        populateTableFromLocalStorage(); 
       }
-
-
-      $.ajax({
-        type: "POST",
-        contentType: 'application/json',
-        url: "/test",
-        dataType: "json",
-        data: JSON.stringify(queryString),
-        success:function(response){
-          console.log(response);
-          localStorage.setItem('queryResults', response);
-          localStorage.setItem('selectedCols', selectedCols);
-          $( '#dataTable' ).bootstrapTable({
-            data: response            
-          });
-        }, 
-        error:function(){
-          var cols = localStorage['selectedCols'].split(',');
-          var res = localStorage['queryResults'];
-          //console.log(cols);
-          //console.log(res);
-          console.log("well shit"); 
-            for (col in cols) {
-            addColumnName(cols[col]);
-            } 
-            $('#dataTable').bootstrapTable({
-             data: JSON.parse(JSON.stringify(res))         
-            });
-          }
-        }); 
-
-      clearSelected(); 
-      };
+    }); 
+  };
 
   function clearSelected() { 
-    console.log($( '#columns' ).val())
     $( '#columns' ).val([]); 
     $( '#tables' ).val([]); 
     {% for name in tables %}
       $('.{{name}}').hide(); 
     {% endfor %}
+    $('select').selectpicker('refresh');
   }
-      
+
+
+  $( "#tables" ).change(function() {
+    {% for name in tables %}
+      $('.{{name}}').hide();
+        console.log("hidden");         
+    {% endfor %}
+    $( "#tables option:selected" ).each(function() {
+      var str = $( this ).text();
+      $('.'+str).show(); 
+        console.log("shown");    
+    });
+  })
+  .trigger( "change" );
+
+
   function setUpTable() { 
-    //var parent = document.getElementById("dataTableHead");
-    //var parent = document.getElementById$("#firstRow");
-    //console.log(parent); 
-    //parent.removeChild(child);
-   
-    /*var resultsTable = document.createElement("table"); 
-    resultsTable.setAttribute("id", "dataTable");        
+    var parentBody = document.getElementById("bootstrapTable");
+    console.log(parentBody); 
+    while(parentBody.hasChildNodes()) {
+      parentBody.removeChild(parentBody.firstChild);
+    }
+    var resultsTable = document.createElement("table"); 
+    resultsTable.id = "dataTable";        
     resultsTable.setAttribute("class", "table-striped"); 
     resultsTable.setAttribute("data-search", "true"); 
     resultsTable.setAttribute("data-show-columns", "true"); 
     resultsTable.setAttribute("data-pagination", "true"); 
     resultsTable.setAttribute("data-height", "75%"); 
 
-    var head = document.createElement("thead")
-    var headerRow = document.createElement("tr")
+    var head = document.createElement("thead");
+    head.setAttribute("id", "dataTableHead");
+    var headerRow = document.createElement("tr");
     headerRow.setAttribute("id", "firstRow");
-
-    //parent.append(resultsTable); 
-    resultsTable.appendChild(head); 
-    head.appendChild(headerRow); */
-
-   /* for (i = 0; i < $("#firstRow").length; i++) {
-      $("#firstRow").removeChild(parent.firstChild); 
-  } */
-}
-
-  function reInitializeVars() {
-      selectedCols = [];
-      counter = 0;
-      queryString = "";
-      selectGroupConcat = [];
-      selectString = "";
-      fromString = ""
-      counterTab = -1;
-      counterCol = 0;
-      table1 = "";
-      firstCol = "";
-      firstSubCol = ""; 
-      groupBy = "";
-      concatStart = "SELECT ";
-      concatEnd = ""; 
-      strCol = "";
-      strTab = "";
+    head.appendChild(headerRow);
+    resultsTable.appendChild(head);
+    parentBody.appendChild(resultsTable);
   }
 
+  function initializeVars() {
+    var q = {
+      concatEnd: "", 
+      concatStart: "SELECT ",
+      counter: 0,
+      counterCol: 0,
+      counterTab: -1,
+      firstCol: "",
+      firstSubCol: "",
+      fromString: "",
+      groupBy: "",                
+      queryString: "",
+      selectedCols: [],
+      selectGroupConcat: [],
+      selectString: "",
+      strCol: "",
+      strTab: "",
+      table1: "", 
+      whereStatement: " WHERE "
+    };
+    return q;
+  }
+/*
   function addColumnName(str) {
       str = str.split('.');
       var colName = document.createElement("th"); 
@@ -197,167 +185,133 @@
       colName.innerText = str[0] + ": " + str[1]; 
       $( '#firstRow' ).append(colName); 
   }
-
-    function addConcatColumnName(str) {
-      //str = str.split('.');
-      var colName = document.createElement("th"); 
-      colName.setAttribute("data-field", str);        
-      colName.setAttribute("data-sortable", "true"); 
-      colName.innerText = str; 
-      $( '#firstRow' ).append(colName); 
-  }
-
-    function buildQuery() {
-      $( "#tables option:selected" ).each(function() {
-        str = $( this ).text();
-        if(counter==0) {
-          table1 = str;
-          fromString += " FROM " + table1;
-        }
-        else {
-          fromString += " JOIN " + str + " ON " + table1 + "user_id" + " = " + str + ".user_id";
-        }
-        counter++;
-      }); counter = 0;
-
-      $( "#columns option:selected" ).each(function() {
-        str = $( this ).text(); console.log($('#groupByUserID').is(":checked"));
-
-          if(counter>0) { 
-            selectString += ", " + str; 
-          } else { 
-            selectString += str; 
-          }
-          selectedCols.push(str); 
-          addColumnName(str);
-          counter++; 
-      }); 
-      var limit = " LIMIT " + $( '#limit' ).val();
-      var queryString = selectGroupConcat + concatStart + selectString + fromString + concatEnd + groupBy + limit;
-      console.log(queryString);
-    } 
-
-    function buildConcatQuery() { 
-      buildSelects(); 
-      var queryString = concatStart + " FROM ";
-      formulateConcatQuery(); 
+*/
+  function addConcatColumnName(str) {
+    var colName = document.createElement("th");
+    var name = str.split('_');
+    colName.setAttribute("data-field", str);        
+    colName.setAttribute("data-sortable", "true"); 
+    var text = ""; 
+    for (word in name) { 
+      text += capitalize(name[word]) + " "; 
     }
-      
-      function buildSelects() {
-        $( "#tables option:selected" ).each(function() {
-          counterTab++;
-          tableName = $( this ).text();
-          if(counterTab == 0) {
-            table1 = tableName;
-            firstCol = "user_id";
-            concatStart += firstCol;
-            selectedCols.push(firstCol); 
-            //console.log(concatStart);
-            addConcatColumnName(firstCol);
-
-          }
-          selectStringGroupConcat(tableName);
-        }); 
+    colName.innerText = text; 
+    $( '#firstRow' ).append(colName); 
+  }
+/*
+  function buildQuery() {
+    $( "#tables option:selected" ).each(function() {
+      str = $( this ).text();
+      if(query.counter==0) {
+        query.table1 = str;
+        query.fromString += " FROM " + query.table1;
       }
+      else {
+        query.fromString += " JOIN " + str + " ON " + query.table1 + "user_id" + " = " + str + ".user_id";
+      }
+      query.counter++;
+    }); query.counter = 0;
 
-    function selectStringGroupConcat(tableName) {
-          var user_id; 
-          firstSubCol = tableName + ".user_id";
-          selectGroupConcat[counterTab] = "(SELECT " + firstSubCol + " AS "; 
-          if( counterTab > 0 ) {
-            selectGroupConcat[counterTab] += tableName + "_user_id"; 
-            user_id = tableName + "_user_id";
-          } else {
-            selectGroupConcat[counterTab] += " user_id ";
-            user_id = "user_id"
-          }
-          fromTemp = " FROM " + tableName; 
-          groupBy = " GROUP BY " + user_id;
-          concatEnd = ") ";
-          $( "#columns option:selected" ).each(function() {
-            strCol = $( this ).text(); //console.log($('#groupByUserID').is(":checked"));
-            strCompare = strCol.split('.');
-            colName = strCompare[0] + "_" + strCompare[1]; 
-            if(strCompare[0] == tableName) {
-              selectedCols.push(strCol); 
-              if(strCol != firstSubCol) {
-                selectGroupConcat[counterTab] += ", GROUP_CONCAT(DISTINCT " + strCol + ") AS " + colName; 
-                concatStart += ", " + colName + " ";
-                  addConcatColumnName(colName);
-              }
-            }
-          });
-          selectGroupConcat[counterTab] += fromTemp + groupBy + concatEnd;
-          if( counterTab > 0 ) { 
-            selectGroupConcat[counterTab] += " ON "  + firstCol + " = " + user_id;
-          }
+    $( "#columns option:selected" ).each(function() {
+      str = $( this ).text(); 
+      if(query.counter>0) { 
+        query.selectString += ", " + str; 
+      } else { 
+        query.selectString += str; 
+      }
+      query.selectedCols.push(str); 
+      addColumnName(str);
+      query.counter++; 
+    }); 
+    var limit = " LIMIT " + $( '#limit' ).val();
+    query.queryString = query.selectGroupConcat + query.concatStart + query.selectString + query.fromString + query.concatEnd + query.groupBy + limit;
+  } 
+*/
+  function buildConcatQuery() { 
+    buildSelects(); 
+    formulateConcatQuery(); 
+    console.log(query.queryString);
+  }
+        
+  function buildSelects() {
+    $( "#tables option:selected" ).each(function() {
+      query.counterTab++;
+      var tableName = $( this ).text();
+      if(query.counterTab == 0) {
+        query.table1 = tableName;
+        query.firstCol = "user_id";
+        query.concatStart += query.firstCol;
+        query.selectedCols.push(query.firstCol); 
+        addConcatColumnName(query.firstCol);
+      }
+      selectStringGroupConcat(tableName);
+    }); 
+  }
+
+  function selectStringGroupConcat(tableName) {
+    var user_id; 
+    query.firstSubCol = tableName + ".user_id";
+    query.selectGroupConcat[query.counterTab] = "(SELECT " + query.firstSubCol + " AS "; 
+    query.selectGroupConcat[query.counterTab] += tableName + "_user_id"; 
+    user_id = tableName + "_user_id";
+    var fromTemp = " FROM " + tableName; 
+    query.groupBy = " GROUP BY " + user_id;
+    query.concatEnd = ") ";
+    $( "#columns option:selected" ).each(function() {
+      query.strCol = $( this ).attr('value'); //console.log($('#groupByUserID').is(":checked"));
+      var strCompare = query.strCol.split('.');
+      var colName = strCompare[1]; 
+      if(strCompare[0] == tableName) {
+        if(query.strCol != query.firstSubCol) {
+          query.selectGroupConcat[query.counterTab] += ", REPLACE(GROUP_CONCAT(DISTINCT " + query.strCol + "), ',', ',   ') AS " + colName; 
+          query.concatStart += ", " + colName + " ";
+          addConcatColumnName(colName);
+          query.selectedCols.push(colName); 
         }
-
-
-    function formulateConcatQuery(){
-      var limit = $( '#limit' ).val(); 
-      for (var i = 0; i < selectGroupConcat.length; i++) {
-        //console.log(selectGroupConcat[i]);
-        if( i>0 ) {
-          queryString += " CROSS JOIN ";
-        }
-        queryString += selectGroupConcat[i];
-      } 
-      queryString += " LIMIT " + limit; 
-      queryString = concatStart + " FROM " + queryString; 
-      console.log(queryString);
+      }
+    });
+    query.selectGroupConcat[query.counterTab] += fromTemp + query.groupBy + query.concatEnd;
+      query.selectGroupConcat[query.counterTab] += " ON "  + query.firstCol + " = " + user_id;
     }
 
-jQuery.fn.highlight = function(pat) {
- function innerHighlight(node, pat) {
-  var skip = 0;
-  if (node.nodeType == 3) {
-   var pos = node.data.toUpperCase().indexOf(pat);
-   pos -= (node.data.substr(0, pos).toUpperCase().length - node.data.substr(0, pos).length);
-   if (pos >= 0) {
-    var spannode = document.createElement('span');
-    spannode.className = 'highlight';
-    var middlebit = node.splitText(pos);
-    var endbit = middlebit.splitText(pat.length);
-    var middleclone = middlebit.cloneNode(true);
-    spannode.appendChild(middleclone);
-    middlebit.parentNode.replaceChild(spannode, middlebit);
-    skip = 1;
-   }
+  function formulateConcatQuery(){
+    var limit = $( '#limit' ).val(); 
+    query.queryString += " (SELECT user_id from user_ids) "
+    for (var i = 0; i < query.selectGroupConcat.length; i++) {
+      query.queryString += " LEFT JOIN ";
+      query.queryString += query.selectGroupConcat[i];
+    } 
+    for (col in query.selectedCols) {
+      if(col>0) {
+        if(col > 1) query.whereStatement += " OR "; 
+        query.whereStatement += query.selectedCols[col] + " NOT NULL" 
+      }
+    }
+    query.queryString += query.whereStatement;
+    query.queryString += " LIMIT " + limit; 
+    query.queryString = query.concatStart + " FROM " + query.queryString; 
   }
-  else if (node.nodeType == 1 && node.childNodes && !/(script|style)/i.test(node.tagName)) {
-   for (var i = 0; i < node.childNodes.length; ++i) {
-    i += innerHighlight(node.childNodes[i], pat);
-   }
+
+  function populateTableFromLocalStorage(){
+    var cols = localStorage['selectedCols'].split(',');
+    var res = localStorage['queryResults'];
+    var isConcat = localStorage['isConcat'];
+    for (col in cols) {
+      addConcatColumnName(cols[col]);
+     /* if(isConcat) 
+        addConcatColumnName(cols[col]);
+      else addColumnName(cols[col]); */
+    } 
+    $('#dataTable').bootstrapTable({    
+      data: JSON.parse(res)         
+    });
   }
-  return skip;
+
+ function capitalize(string) {
+   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
  }
- return this.length && pat && pat.length ? this.each(function() {
-  innerHighlight(this, pat.toUpperCase());
- }) : this;
-};
-
-jQuery.fn.removeHighlight = function() {
- return this.find("span.highlight").each(function() {
-  this.parentNode.firstChild.nodeName;
-  with (this.parentNode) {
-   replaceChild(this.firstChild, this);
-   normalize();
-  }
- }).end();
-};
-
-
-$('#dataTable').highlight($(".search.bs.table").val());
-
-$('#dataTable').on('search.bs.table', function (e, text){
-
-    $('#dataTable').highlight(text);
-    console.log(e);
-    console.log(text);
-});
 
 </script>
-<style> .highlight { background-color: yellow } </style>
+<script src="static/js/highlight.js"></script>
 
 {% endblock %}

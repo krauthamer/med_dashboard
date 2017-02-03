@@ -1,0 +1,60 @@
+  <!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  	<meta charset="utf-8">
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Stylesheets -->
+    <link href="static/css/style.css" rel="stylesheet">
+    <link href="static/lib/bootstrap-css/css/bootstrap.css" rel="stylesheet">
+    <link href="static/lib/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="static/lib/bootstrap-multiselect/dist/css/bootstrap-multiselect.css" rel="stylesheet" >
+    <link href="static/lib/bootstrap-select/dist/css/bootstrap-select.min.css" rel="stylesheet">
+    <link href="static/lib/bootstrap-table/dist/bootstrap-table.css" rel="stylesheet" >
+    <link href="static/lib/nvd3/build/nv.d3.min.css" rel="stylesheet" >
+
+    <!-- JS libs -->
+    <script src="static/lib/jquery/dist/jquery.js"></script>
+    <script src="static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="static/lib/bootstrap-select/dist/js/bootstrap-select.js"></script>
+    <script src="static/lib/bootstrap-table/dist/bootstrap-table.js"></script>
+    <script src="static/lib/lodash/dist/lodash.js"></script>
+    <script src="static/lib/d3/d3.min.js"></script>
+    <script src="static/lib/nvd3/build/nv.d3.min.js"></script>
+    <script type=text/javascript> $SCRIPT_ROOT = {{ request.script_root|tojson|safe }}; </script>
+    
+    <title>{{title}}</title>
+  </head>
+  <body> <br>
+
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/data_entry"">Kimchi's System</a>
+    </div>
+    <ul class="nav navbar-nav">
+    <li class="active"><a href="/data_entry">Set Up Database</a></li>
+    <li><a href="/input">Imput Patient Data</a></li>
+    <li><a href="/graphs">Visualizations</a></li>
+    <li><a href="/specificQueries">Specific Queries</a></li>
+    </ul>
+  </div>
+</nav>
+
+  <br><br><br><br>
+    <div class = "container">
+    <h1>Data Entry</h1>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+            <li>{{ message }} </li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    </div>
+      {% block content %}{% endblock %}
+  </body>
+</html>

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+	<div class = "col-xs-12" style = "float: left; padding-right: 0px;  min-width: 100px; ">
+		<div class="row">
+			<p><h2>Tests</h2></p>
+			<div class="items col-xs-6 col-sm-2 col-md-2 col-lg-2" style = "float: left; padding-right: 20px; ">
+				<h4>Name:</h4>
+				<input type = "text" class = "form-control" id = "name" />
+			</div>
+			<div class = "col-xs-3" style = "float: left; padding-right: 20px; ">
+				<h4>Category:</h4> 
+				<input type = "text" class = "form-control" id = "category" />
+			</div>
+			<div class = "col-xs-3" style = "float: left; padding-right: 10px; ">
+				<h4>Code Name: </h4>
+				<input type = "text" class = "form-control" id = "code_name" />
+			</div>
+		</div>
+			<br>
+				<div class="row">
+					<h4>Test Type: </h4>
+					<div class="form-group">
+						<div class="items-collection">
+						{% for type in types %}
+							<div class="items col-xs-6 col-sm-2 col-md-2 col-lg-2">
+								<div class="info-block block-info clearfix">
+									<div data-toggle="buttons" class="btn-group bizmoduleselect">
+										<label class="btn btn-default">
+											<div class="itemcontent">
+												<input type = "checkbox" id = "{{type}}" name="var_id[]"> 
+												<h5>{{type}}</h5>
+											</div>
+										</label>
+									</div>
+								</div>
+							</div>
+						{% endfor %}
+						</div>
+					</div>
+				</div>
+
+<br><br>
+				<div class="row">
+				  <div class="form-group">
+				      <div class="col-sm-12 col-md-12 col-lg-12">                
+				          <i class="fa fa-search fa-2x pull-left searchicon"></i><input type="search" class="form-control" id="search" placeholder="Filter items...">
+				      </div>
+				  </div>
+				</div>   
+
+<br>
+
+		     	<div class = "row">
+					<button id = "getData" type="button" class="btnSubmit" onclick = "submitquery()" > Send </button>
+				</div>
+<br>
+
+				<div id= bootstrapTable>
+					<table id = "dataTable" class = "table-striped" data-search="true" data-show-columns="true" data-pagination="true" data-height=75%>
+						<thead id = "dataTableHead" style = "background-color: #333333; color: white; ">        
+							<tr id = "firstRow" ></tr>
+						</thead>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<script type="text/javascript">
+
+  $('#search').on('keyup', function () {
+      var pattern = $(this).val();
+      $('.items-collection .items').hide();
+      $('.items-collection .items').filter(function () {
+          return $(this).text().match(new RegExp(pattern, 'i'));
+      }).show();
+  });
+
+</script>
+{% endblock %}

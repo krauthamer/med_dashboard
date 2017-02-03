@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% block content %}
+<div id = "bodydiv" class="container"><br>
+
+  <div class="container">
+      <div class="row">
+          <div class="form-group">
+              <div class="items-collection">
+                  <div class="items col-xs-6 col-sm-3 col-md-3 col-lg-3">
+                      <div class="info-block block-info clearfix">
+                          <div data-toggle="buttons" class="btn-group bizmoduleselect">
+                              <label class="btn btn-default">
+                                  <div class="itemcontent">
+                                      <input type = "checkbox" id = "searchDiabetes" name="var_id[]"> 
+                                      <h5>Diabetes</h5>
+                                  </div>
+                              </label>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="items col-xs-6 col-sm-3 col-md-3 col-lg-3">
+                      <div class="info-block block-info clearfix">
+                          <div data-toggle="buttons" class="btn-group itemcontent">
+                              <label class="btn btn-default">
+                                  <div class="itemcontent">
+                                      <input type="checkbox" name="var_id[]" id = "searchADHD">
+                                      <h5>ADHD</h5>
+                                  </div>
+                              </label>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="items col-xs-6 col-sm-3 col-md-3 col-lg-3">
+                      <div class="info-block block-info clearfix">
+                          <div data-toggle="buttons" class="btn-group itemcontent">
+                              <label class="btn btn-default">
+                                  <div class="itemcontent">
+                                      <input type="checkbox" name="var_id[]" id = "searchOSA">
+                                      <h5>Sleep Apnea</h5>
+                                  </div>
+                              </label>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="items col-xs-6 col-sm-3 col-md-3 col-lg-3">
+                      <div class="info-block block-info clearfix">
+                          <div data-toggle="buttons" class="btn-group itemcontent">
+                              <label class="btn btn-default">
+                                  <div class="itemcontent">
+                                      <input type="checkbox" name="var_id[]" id = "searchMoodDisorder">
+                                      <h5>Mood Disorder</h5>
+                                  </div>
+                              </label>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="items col-xs-6 col-sm-3 col-md-3 col-lg-3">
+                      <div class="info-block block-info clearfix">
+                          <div data-toggle="buttons" class="btn-group itemcontent">
+                              <label class="btn btn-default">
+                                  <div class="itemcontent">
+                                      <input type="checkbox" name="var_id[]" id = "searchRiskPregnancy">
+                                      <h5>High-Risk Pregnancy</h5>
+                                  </div>
+                              </label>
+                          </div>
+                      </div>
+                  </div>     
+                  <div class="items col-xs-6 col-sm-3 col-md-3 col-lg-3">
+                      <div class="info-block block-info clearfix">
+                          <div data-toggle="buttons" class="btn-group itemcontent">
+                              <label class="btn btn-default">
+                                  <div class="itemcontent">
+                                      <input type="checkbox" name="var_id[]" id = "searchSmoking">
+                                      <h5>Smoker</h5>
+                                  </div>
+                              </label>
+                          </div>
+                      </div>
+                  </div>             
+                  <div class="items col-xs-6 col-sm-3 col-md-3 col-lg-3">
+                      <div class="info-block block-info clearfix">
+                          <div data-toggle="buttons" class="btn-group itemcontent">
+                              <label class="btn btn-default">
+                                  <div class="itemcontent">
+                                      <input type = "checkbox" name="var_id[]" id = "searchPrediabetes"> 
+                                      <h5>Prediabetes</h5>
+                                  </div>
+                              </label>
+                          </div>
+                      </div>
+                  </div>                
+              </div>
+          </div>
+      </div>
+      <div class="row">
+          <br><br>
+          <div class="form-group">
+              <div class="col-sm-12 col-md-12 col-lg-12">                
+                  <i class="fa fa-search fa-2x pull-left searchicon"></i><input type="search" class="form-control" id="search" placeholder="Filter items...">
+              </div>
+          </div>
+      </div>   
+      <br>
+      <input type = "checkbox" id = "orOrAnd">  Search for individual records that have all the selected problems, instead of a list of all records that have at least one of these types of problems?
+      <br>
+      <input type = "checkbox" id = "counts">  Display number of items in each columns belonging to each user id (eg how many medications the patient takes, how many allergies the patient has, etc?
+      <br><br>
+      <button type="button" class="btnSubmit" onclick = "submitquery()" > Send </button>
+      <br><br>
+  </div>
+  <span id = "countx"></span>
+  <div id= bootstrapTable>
+    <table id = "dataTable" class = "table-striped" data-search="true" data-show-columns="true" data-pagination="true" data-height=75%>
+      <thead id = "dataTableHead" style = "background-color: #333333; color: white; ">        
+      </thead>
+    </table>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+  var queryStart, queryEnd, smokingQuery, problem_names, prediabetesQuery, diabetesQuery, adhdQuery, osaQuery, moodDisorderQuery, highriskpregnancyQuery, fullQuery;
+
+  $( document ).ready(function() {
+    setQueryVars(); 
+  });
+    
+
+  $('#search').on('keyup', function () {
+      var pattern = $(this).val();
+      $('.items-collection .items').hide();
+      $('.items-collection .items').filter(function () {
+          return $(this).text().match(new RegExp(pattern, 'i'));
+      }).show();
+  });
+
+  function submitquery() {
+    formulateQuery(); 
+    console.log(fullQuery);
+    $.ajax({
+      type: "POST",
+      contentType: 'application/json',
+      url: "/testing",
+      dataType: "json",
+      data: JSON.stringify(fullQuery),
+      success:function(response){
+        cols = [];
+        var data = response[0]; 
+        cols.push({field: "user_id", title: "user_id", sortable: "true"});
+        for (row in data) {
+          if(row != "user_id") cols.push({field: row, title: row, sortable: "true"});
+        }
+        updateDisplayedCounts(response);
+
+        localStorage.setItem('specificQueryResponse', encodeURIComponent(JSON.stringify(response)));
+        window.data = response; 
+        localStorage.setItem('specificQueryCols', cols);
+        var bootstrapTab = $( '#dataTable' ).bootstrapTable({
+          columns: cols,
+          data: response            
+        });
+      }, 
+      error:function(){
+        console.log("well shit"); 
+      }
+    }); 
+  };
+
+
+  // $('.oneCheck').click(function() {
+  //   $('.oneCheck').not(this).prop('checked', false);
+  // });
+  function updateDisplayedCounts(response) {
+    var countTotal = 0;
+    for (row in response) countTotal++;
+    {% for row in counts %}  
+      var currRow = {{row}};
+      console.log(currRow); 
+    {% endfor %}
+    document.getElementById('countx').innerHTML = "Counts of patient with each type of ailment: " + countTotal;    
+  }
+
+  function setQueryVars(){
+    queryStart = 'select user_id, problem_names, medication_names, allergy_names, procedure_names, immunization_names from combo where ';
+
+    queryEnd = ' group by user_id order by user_id;'
+
+    smokingQuery = '( problem_names like "%smok%" or problem_names like "%bupropion%" or problem_names like "%nicotine dep%" or problem_names like "%cigarette%" or problem_names like "%tobacco%") and problem_names not like "%former smok%" ';
+
+    prediabetesQuery = 'problem_names like "%prediabet%" and problem_names not like "%diabetes type%" and problem_names not like "%diabetes m%" ';
+
+    diabetesQuery = ' problem_names not like "%prediabet%" and (problem_names like "%diabet%" or medication_names like "%Metformin%" or medication_names like "%insulin%" and medication_names not like "%insulin resistance%") ';
+
+    adhdQuery = 'problem_names like "%ADHD%" or problem_names like "%attention def%" or medication_names like "%adderall%" ';
+
+    osaQuery = ' problem_names like "%osa%" or problem_names like "%apnea%" ';
+
+    moodDisorderQuery = ' problem_names like "%panic d%" or problem_names like "%anxi%" or problem_names like "%depress%" or problem_names like "%bipolar%" or problem_names like "%mood%" or problem_names like "%mdd%" or problem_names like "%Dysthymia%" '; 
+
+    highriskpregnancyQuery = ' problem_names like "%high_risk preg%" ';
+  }
+
+  //var problems = select count(distinct problem_name) from problems;
+   
+  function formulateQuery() {
+      var counter = 0; 
+      var conj; 
+      fullQuery = queryStart;
+
+      if($('#orOrAnd').is(":checked")) conj = " AND "
+      else conj = " OR "
+
+      if($('#searchDiabetes').is(":checked")) {
+        if(counter>0) fullQuery += conj;
+        fullQuery  += diabetesQuery; 
+        counter++;
+      }
+      if ($('#searchSmoking').is(":checked")) {
+        if(counter>0) fullQuery += conj;
+        fullQuery  += smokingQuery; 
+        counter++;
+      }
+      if ($('#searchPrediabetes').is(":checked")) {
+        if(counter>0) fullQuery += conj;
+        fullQuery  += prediabetesQuery; 
+        counter++;
+      }
+      if ($('#searchADHD').is(":checked")) {
+        if(counter>0) fullQuery += conj;
+        fullQuery  += adhdQuery; 
+        counter++;
+      }
+      if ($('#searchOSA').is(":checked")) {
+        if(counter>0) fullQuery += conj;
+        fullQuery  += osaQuery; 
+        counter++;
+      }
+      if ($('#searchRiskPregnancy').is(":checked")) {
+        if(counter>0) fullQuery += conj;
+        fullQuery  += highriskpregnancyQuery; 
+        counter++;
+      }
+      if ($('#searchMoodDisorder').is(":checked")) {
+        if(counter>0) fullQuery += conj;
+        fullQuery  += moodDisorderQuery; 
+        counter++;
+      }
+
+      fullQuery += queryEnd;
+  } 
+
+</script>
+
+<script src="static/js/highlight.js"></script>
+
+<style>
+  #search {
+      width:90%;
+  }
+
+  .searchicon {
+      color:#333333;
+  }
+
+  .items-collection{
+      margin:20px 0 0 0;
+  }
+  .items-collection label.btn-default.active{
+      background-color:#007ba7;
+      color:#FFF;
+  }
+  .items-collection label.btn-default{
+      width:90%;
+      border:1px solid #305891;
+      margin:5px; 
+      border-radius: 17px;
+      color: #305891;
+  }
+  .items-collection label .itemcontent{
+      width:100%;
+  }
+  .items-collection .btn-group{
+      width:90%
+  }
+
+  .pb-template a:active, .pb-template a:hover, .pb-template a:focus
+  {
+      color: #222222;
+      text-decoration: none;
+  }
+  .pb-button:hover
+   {
+       color: #fff;
+       background-color: #454444;
+       border-color: #F58723;
+       border-bottom: 3px solid #F58723;
+   }
+   .fa-automobile:before, .fa-car:before {
+      content: "\f1b9";
+  }
+  [data-toggle=buttons]>.btn input[type=checkbox], 
+  [data-toggle=buttons]>.btn-group>.btn input[type=checkbox] {
+      position: absolute;
+      clip: rect(0,0,0,0);
+      pointer-events: none;
+    }
+ </style>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!--pseudocode: formFields: 
+Field: patient name 
+Field: patient age 
+Field: other paient info, etc 
+	input field with label [organ, bodypart, supplement, etc]
+	adjacent field with %
+	adjacent field with years to meltdown 
+		+ button to add sub field [organ, bodypart, supplement, etc]
+	+ button to add new standalone field 
+submit button to add all to database 
+-->
+
+<div id = "bodydiv" class="container"><br>
+	<button id = 'add'>Add Filed </button>
+	<div id = 'additionalInputs'>
+		 <div><input type="text" name="input[]" autocomplete = 'on'></div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	
+//psuedocode: autocompleteAjax
+// on each key up, take the letters typed already, 
+// and query appropriate table for items with those letters 
+// display these as appended to a dynamic dropdown 
+
+// pseudocode: addField 
+// click add button 
+// open dropdown of options 
+// bodypart, organ, supplement, etc
+// click selection 
+// add that field to the page 
+
+
+
+	$( document ).ready(function() {
+		$("#add").click( function(e) {
+			$("#additionalInputs").append('<div><input name="input[]" type="text" /><button class="delete">Delete</button></div>');
+		});
+		$("body").on("click", ".delete", function (e) {
+			$(this).parent("div").remove();
+		});
+	});
+
+</script>
+
+{% endblock %}

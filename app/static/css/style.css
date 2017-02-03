@@ -1,0 +1,54 @@
+.table-striped>tbody>tr:nth-child(even)>td,
+.table-striped>tbody>tr:nth-child(even)>th {
+  background-color: #FFFFFF;
+}
+.highlight { 
+  background-color: yellow 
+} 
+
+#search {
+    width:90%;
+}
+
+.searchicon {
+    color:#5CB85C;
+}
+
+.items-collection{
+    margin:20px 0 0 0;
+}
+.items-collection label.btn-default.active{
+    background-color:#007ba7;
+    color:#FFF;
+}
+.items-collection label.btn-default{
+    width:90%;
+    border:1px solid #305891;
+    margin:5px; 
+    border-radius: 17px;
+    color: #305891;
+}
+.items-collection label .itemcontent{
+    width:100%;
+}
+.items-collection .btn-group{
+    width:90%
+}
+
+.pb-template a, .pb-template a:visited
+{
+    color: #444444;
+}
+
+.pb-template a:active, .pb-template a:hover, .pb-template a:focus
+{
+    color: #222222;
+    text-decoration: none;
+}
+.pb-button:hover
+ {
+     color: #fff;
+     background-color: #454444;
+     border-color: #F58723;
+     border-bottom: 3px solid #F58723;
+ }

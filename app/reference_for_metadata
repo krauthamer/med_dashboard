@@ -1,0 +1,69 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE testType(
+  "type" TEXT
+);
+
+INSERT INTO testType(type) VALUES ('organs');
+INSERT INTO testType(type) VALUES ('allergies');
+INSERT INTO testType(type) VALUES ('heavy_metals');
+INSERT INTO testType(type) VALUES ('microbial_plane');
+INSERT INTO testType(type) VALUES ('deficiency_symptoms');
+INSERT INTO testType(type) VALUES ('therapy');
+INSERT INTO testType(type) VALUES ('remedy_filter');
+INSERT INTO testType(type) VALUES ('level');
+INSERT INTO testType(type) VALUES ('dental_test_set');
+INSERT INTO testType(type) VALUES ('vital_teeth');
+INSERT INTO testType(type) VALUES ('chakras');
+INSERT INTO testType(type) VALUES ('meridian_status');
+INSERT INTO testType(type) VALUES ('special_ampules');
+INSERT INTO testType(type) VALUES ('potency_test_set');
+INSERT INTO testType(type) VALUES ('dosage_test_set');
+INSERT INTO testType(type) VALUES ('basic_test_set');
+
+CREATE TABLE tests(
+  "id" SERIAL PRIMARY KEY, 
+  "name" TEXT,
+  "category" TEXT,
+  "code_name" TEXT,
+  "parent_id" INT references tests(id),
+  "type" TEXT NOT NULL DEFAULT ('M') REFERENCES testType(Type)
+);
+
+CREATE TABLE patients(
+  "id" SERIAL PRIMARY KEY,  
+  "first_name" TEXT,
+  "last_name" TEXT,
+  "birthday" DATE
+);
+
+CREATE TABLE visits(
+  "id" SERIAL PRIMARY KEY,  
+  "patient_id" INT references patients(id), 
+  "date" DATE
+);
+
+CREATE TABLE complaints(
+  "id" SERIAL PRIMARY KEY,  
+  "name" TEXT,
+  "category" TEXT, 
+  "area_of_body" TEXT 
+);
+
+CREATE TABLE visit_complaints(
+  "id" SERIAL PRIMARY KEY,  
+  "visit_id" INT references visits(id), 
+  "complaint_id" INT references complaints(id), 
+  "description" TEXT,
+  "time_suffered" TEXT
+);
+
+CREATE TABLE test_results(
+  "id" SERIAL PRIMARY KEY, 
+  "visit_id" INT references visits(id),
+  "test_id" INT references tests (id), 
+  "test_date" DATE,
+  "percentage" INT, 
+  "years" INT,
+  "resolved" BOOLEAN
+);
