@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+	<div class = "col-xs-12" style = "float: left; padding-right: 0px;  min-width: 100px; ">
+		<hr>
+		<div id = "entry_rows">
+			<div class = "entry_row_list" id = "row1">
+				<div class="row">
+					<p><h2>Tests</h2></p>
+					<div style= 'padding-left: 10px; '>
+						<div class="items col-xs-3 col-sm-3 col-md-3 col-lg-3" style = "float: left; padding-right: 20px; ">
+							<h4>Name:</h4>
+							<input type = "text" class = "form-control" id = "name1" />
+						</div>
+						<div class = "col-xs-3" style = "float: left; padding-right: 20px; ">
+							<h4>Meaning:</h4> 
+							<input type = "text" class = "form-control" id = "meaning1" />
+						</div>
+						<div class = "col-xs-3" style = "float: left; padding-right: 20px; ">
+							<h4>Actual Ampules:</h4> 
+							<input type = "text" class = "form-control" id = "actual_ampules1" />
+						</div>
+						<div class = "col-xs-3" style = "float: left; padding-right: 10px; ">
+							<h4>Code Name: </h4>
+							<input type = "text" class = "form-control" id = "code_name1" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<br>
+     	<div class = "row">
+			<button id = "addEntryRow" type="button" class="btn-default" onclick = "addEntryRow()" > + </button>
+		</div>
+
+		<br>
+		<div class="row">
+			<h4>Test Type: </h4>
+			<div class="form-group" style= 'padding-left: 10px; '>
+				<div class="items-collection">
+				{% for type in types %}
+					<div class="items col-xs-6 col-sm-2 col-md-2 col-lg-2">
+						<div class="info-block block-info clearfix">
+							<div data-toggle="buttons" class="btn-group bizmoduleselect">
+								<label class="btn btn-default">
+									<div class="itemcontent">
+										<input type = "checkbox" id = "{{type[0]}}" name="var_id[]"> 
+										<h5>{{type[1]}}</h5>
+									</div>
+								</label>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+				</div>
+			</div>
+		</div>
+
+			<br><br>
+			<div class="row">
+			  <div class="form-group">
+			      <div class="col-sm-12 col-md-12 col-lg-12">                
+			          <i class="fa fa-search fa-2x pull-left searchicon"></i><input type="search" class="form-control" id="search" placeholder="Filter items...">
+			      </div>
+			  </div>
+			</div>   
+
+			<br>
+
+	     	<div class = "row">
+				<button id = "getData" type="button" class="btn-default" onclick = "submitEntry()" > Send </button>
+			</div>
+			<br>
+
+			<div id= bootstrapTable>
+				<table id = "dataTable" class = "table-striped" data-search="true" data-show-columns="true" data-pagination="true" data-height=75%>
+					<thead id = "dataTableHead" style = "background-color: #333333; color: white; ">        
+						<tr id = "firstRow" ></tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+var counter = 2; 
+
+$('#search').on('keyup', function () {
+  var pattern = $(this).val();
+  $('.items-collection .items').hide();
+  $('.items-collection .items').filter(function () {
+      return $(this).text().match(new RegExp(pattern, 'i'));
+  }).show();
+});
+
+function parseTestNames(){
+	//parse out underscores and capitalize first letter of each word, then add this as the inner html for the <h5> tag
+}
+
+function submitEntry(){
+	//some ajax and parsing to post entry details to the db
+	var list_of_entries = [];
+	var type = "";
+	//var counter = 0;  
+	$("input:checkbox").each(function(){
+	    //if(counter > 0) break; 
+	    if($(this).is(":checked")){
+	        type = $(this).attr("id");
+	        //counter ++; 
+	    }
+	});
+	for(var i = 1; i < counter; i++) { 
+		var name = $('#name' + i.toString()).val();
+		var meaning = $('#meaning' + i.toString()).val(); 
+		var actual_ampules = $('#actual_ampules' + i.toString()).val(); 
+		var code_name = $('#code_name' + i.toString()).val(); 
+
+
+		var query = name + ':::' + meaning + ':::' + actual_ampules + ':::' + code_name + ':::' + type;
+		list_of_entries.push(query)
+
+	    $.ajax({
+	      type: "POST",
+	      headers: {"Content-Type": "application/json"},
+	      url: "/add_test",
+	      dataType: "json",
+	      data: JSON.stringify(query),
+	      success:function(response){
+	        localStorage.setItem('queryResults', JSON.stringify(response));
+	      }, 
+	      error:function(e){
+	        console.log("well shit"); 
+	        console.log(e);
+	      }
+	    }); 
+	}
+    counter = 0; 
+}
+
+
+function addEntryRow(){
+	//append a data entry row to the the entry_rows div 
+	$('#entry_rows').append("<br><div class = 'entry_row_list' id = 'row" + counter.toString() + "''><div class='row'><div style= 'padding-left: 10px; '><div class='items col-xs-3 col-sm-3 col-md-3 col-lg-3' style = 'float: left; padding-right: 20px; '><input type = 'text' class = 'form-control' id = 'name" + counter.toString() + "' /></div><div class = 'col-xs-3' style = 'float: left; padding-right: 20px;'><input type = 'text' class = 'form-control' id = 'meaning" + counter.toString() + "' /></div><div class = 'col-xs-3' style = 'float: left; padding-right: 20px;'><input type = 'text' class = 'form-control' id = 'actual_ampules" + counter.toString() + "' /></div><div class = 'col-xs-3' style = 'float: left; padding-right: 10px; '><input type = 'text' class = 'form-control' id = 'code_name" + counter.toString() + "' /></div></div></div></div>");
+	counter++; 
+}
+</script>
+
+{% endblock %}

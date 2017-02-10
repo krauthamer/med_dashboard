@@ -31,20 +31,24 @@
   <nav class="navbar navbar-inverse navbar-fixed-top">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a class="navbar-brand" href="/data_entry"">Input and Analysis System</a>
+      <a class="navbar-brand" href="/">Input and Analysis System</a>
     </div>
     <ul class="nav navbar-nav">
-    <li class="active"><a href="/data_entry">Set Up Database</a></li>
-    <li><a href="/input">Imput Patient Data</a></li>
+    <li class="{{active_tests}}"><a href="/test_entry">Add Tests to Database</a></li>
+    <li class="{{active_view}}"><a href="/view_tests">View Tests</a></li>
+    <li class="{{active_dosage}}"><a href="/dosage_entry">Add Dosages to Database</a></li>
+<!--     <li><a href="/remedy_entry">Add Remedies to Database</a></li>
+   <li><a href="/input">Imput Patient Data</a></li>
     <li><a href="/graphs">Visualizations</a></li>
     <li><a href="/specificQueries">Specific Queries</a></li>
+-->
     </ul>
   </div>
 </nav>
 
   <br><br><br><br>
     <div class = "container">
-    <h1>Data Entry</h1>
+    <h1>{{title}}</h1>
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <ul>

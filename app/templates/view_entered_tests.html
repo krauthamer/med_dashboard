@@ -1,0 +1,146 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<div class="container"><br>
+  <h3>Delete a Row</h3>
+  <input style = "width: 50%; " id = "delete" class = "form-control" type = "text" placeholder="Enter ID number of row you would like to delete"/> <br>
+  <button id = "delete_id" type="button" class="btn-default" onclick="submitDelete()"> Delete Entry </button>
+  <hr>
+  <div id = "dt">
+  </div>
+</div>
+
+
+<script type="text/javascript">
+$( document ).ready(function() {
+  displayTableAjax();
+});
+
+function doSomeAjax(input, url, successFunction, errResponse){
+    $.ajax({
+      type: "POST",
+      contentType: 'application/json',
+      url: url,
+      dataType: "json",
+      data: JSON.stringify(input),
+      success:function(response){
+        successFunction(response); 
+      }, 
+      error:function(){
+        console.log(errResponse);
+      }
+  });
+}
+
+function displayTableAjax(){
+  var query = "SELECT * FROM tests;";
+  doSomeAjax(query, "/retrieveQueryResults", displayTable, "unable to display table"); 
+}
+
+function displayTable(response){
+    console.log(response);
+    $('#dt').append("<table id = 'dataTable' class = 'table-striped' data-search='true' data-show-columns='true' data-pagination='true' data-height=75%><thead><tr id = 'firstRow'></tr></thead></table>");
+    addColumnName("id"); 
+    addColumnName("name");
+    addColumnName("meaning"); 
+    addColumnName("actual_ampules"); 
+    addColumnName("code_name"); 
+    addColumnName("type"); 
+    $('#dataTable').bootstrapTable({
+      data: response            
+    });
+}
+
+function addColumnName(str) {
+    //var str = str.split('.');
+    var colName = document.createElement("th"); 
+    colName.setAttribute("data-field", str);        
+    colName.setAttribute("data-sortable", "true"); 
+    colName.innerText = str; 
+    $( '#firstRow' ).append(colName); 
+}
+
+function submitDelete(){
+  var id = $('#delete').val();  
+  console.log(id); 
+  var query = "delete from tests where id = " + id + ";"; 
+  doSomeAjax(query, "/delete_entry", function(response){
+    console.log(response);
+  }, "unable to delete entry");
+
+  var node = document.getElementById("dt");
+  node.innerHTML = "";
+  // clearInner(node);
+  // node.parentNode.removeChild(node);
+  // $(".bootstrapTable").each(function(){
+  //   this.parentNode.removeChild(this);
+  // });
+  displayTableAjax(); 
+}
+
+function clearInner(node) {
+  while (node.hasChildNodes()) {
+    clear(node.firstChild);
+  }
+}
+
+function clear(node) {
+  while (node.hasChildNodes()) {
+    clear(node.firstChild);
+  }
+  node.parentNode.removeChild(node);
+  console.log(node, "cleared!");
+}
+
+jQuery.fn.highlight = function(pat) {
+ function innerHighlight(node, pat) {
+    var skip = 0;
+    if (node.nodeType == 3) {
+       var pos = node.data.toUpperCase().indexOf(pat);
+       pos -= (node.data.substr(0, pos).toUpperCase().length - node.data.substr(0, pos).length);
+       if (pos >= 0) {
+        var spannode = document.createElement('span');
+        spannode.className = 'highlight';
+        var middlebit = node.splitText(pos);
+        var endbit = middlebit.splitText(pat.length);
+        var middleclone = middlebit.cloneNode(true);
+        spannode.appendChild(middleclone);
+        middlebit.parentNode.replaceChild(spannode, middlebit);
+        skip = 1;
+       }
+      }
+      else if (node.nodeType == 1 && node.childNodes && !/(script|style)/i.test(node.tagName)) {
+       for (var i = 0; i < node.childNodes.length; ++i) {
+        i += innerHighlight(node.childNodes[i], pat);
+       }
+    }
+    return skip;
+ }
+ return this.length && pat && pat.length ? this.each(function() {
+  innerHighlight(this, pat.toUpperCase());
+ }) : this;
+};
+
+jQuery.fn.removeHighlight = function() {
+   return this.find("span.highlight").each(function() {
+      this.parentNode.firstChild.nodeName;
+      with (this.parentNode) {
+       replaceChild(this.firstChild, this);
+       normalize();
+      }
+   }).end();
+};
+
+
+$('#dataTable').highlight($(".search.bs.table").val());
+
+$('#dataTable').on('search.bs.table', function (e, text){
+    $('#dataTable').highlight(text);
+    console.log(e);
+    console.log(text);
+});
+
+</script>
+
+<style> .highlight { background-color: yellow } </style>
+{% endblock %}

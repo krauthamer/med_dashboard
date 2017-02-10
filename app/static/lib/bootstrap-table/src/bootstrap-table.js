@@ -507,7 +507,7 @@
 
     BootstrapTable.COLUMN_DEFAULTS = {
         radio: false,
-        checkbox: false,
+        checkbox: true,
         checkboxEnabled: true,
         field: undefined,
         title: undefined,

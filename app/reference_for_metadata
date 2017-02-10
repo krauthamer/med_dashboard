@@ -4,6 +4,8 @@ CREATE TABLE testType(
   "type" TEXT
 );
 
+INSERT INTO testType(type) VALUES ('vega_testing');
+INSERT INTO testType(type) VALUES ('vega_pretest');
 INSERT INTO testType(type) VALUES ('organs');
 INSERT INTO testType(type) VALUES ('allergies');
 INSERT INTO testType(type) VALUES ('heavy_metals');
@@ -20,25 +22,33 @@ INSERT INTO testType(type) VALUES ('special_ampules');
 INSERT INTO testType(type) VALUES ('potency_test_set');
 INSERT INTO testType(type) VALUES ('dosage_test_set');
 INSERT INTO testType(type) VALUES ('basic_test_set');
+INSERT INTO testType(type) VALUES ('geopathy');
+
+CREATE TABLE dosage_enum(
+  "dosage" TEXT,
+  "unit" TEXT, 
+  "remedy_name" TEXT REFERENCES remedies(remedy_name)
+);
 
 CREATE TABLE tests(
-  "id" SERIAL PRIMARY KEY, 
+  "id" INTEGER PRIMARY KEY, 
   "name" TEXT,
-  "category" TEXT,
+  "meaning" TEXT,
+  "actual_ampules" TEXT,
   "code_name" TEXT,
-  "parent_id" INT references tests(id),
-  "type" TEXT NOT NULL DEFAULT ('M') REFERENCES testType(Type)
+  "type" TEXT REFERENCES testType(Type)
 );
 
 CREATE TABLE patients(
   "id" SERIAL PRIMARY KEY,  
   "first_name" TEXT,
   "last_name" TEXT,
-  "birthday" DATE
+  "birthday" DATE, 
+  "notes" TEXT
 );
 
 CREATE TABLE visits(
-  "id" SERIAL PRIMARY KEY,  
+  "id" INTEGER PRIMARY KEY autoincrement,  
   "patient_id" INT references patients(id), 
   "date" DATE
 );
@@ -47,7 +57,8 @@ CREATE TABLE complaints(
   "id" SERIAL PRIMARY KEY,  
   "name" TEXT,
   "category" TEXT, 
-  "area_of_body" TEXT 
+  "area_of_body" TEXT,
+  "notes" TEXT
 );
 
 CREATE TABLE visit_complaints(
@@ -55,15 +66,31 @@ CREATE TABLE visit_complaints(
   "visit_id" INT references visits(id), 
   "complaint_id" INT references complaints(id), 
   "description" TEXT,
-  "time_suffered" TEXT
+  "time_suffered" TEXT, 
+  "notes" TEXT
+);
+
+CREATE TABLE remedies(
+  "remedy_name" TEXT
 );
 
 CREATE TABLE test_results(
   "id" SERIAL PRIMARY KEY, 
   "visit_id" INT references visits(id),
   "test_id" INT references tests (id), 
-  "test_date" DATE,
+  "parent_id" INT references tests(id),
   "percentage" INT, 
-  "years" INT,
-  "resolved" BOOLEAN
+  "years_remaining" INT,
+  "resolved" BOOLEAN,
+  "notes" TEXT
+);
+
+CREATE TABLE prescribed_remedies(
+  "id" SERIAL PRIMARY KEY, 
+  "test_results_id" INT references test_results(id),
+  "remedy" TEXT REFERENCES remedies(remedy_name),
+  //we may not want this to reference since we may encounter remedies we haven't entetred in the database. We should auto insert every time a new one is added. 
+  "remedy_dosage" TEXT, 
+  "remedy_times_daily" INT, 
+  "notes" TEXT
 );
